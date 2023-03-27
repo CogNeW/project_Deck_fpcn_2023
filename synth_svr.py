@@ -18,7 +18,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     """
 
 
-
+    # load dependencies
     import pandas as pd 
     import numpy as np
     from sklearn.svm import SVR
@@ -30,10 +30,21 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     from time import time
     import os
     import sys
+    from utils.pipeline_funcs import learning_curves
+    from utils.pipeline_funcs import transform_data
+    from utils.pipeline_funcs import synth
+    from utils.pipeline_funcs import svr_selectCV
+    from datetime import datetime
+    from utils.pipeline_funcs import perm_svr
+    from utils.pipeline_funcs import bootstrap
+    from utils.pipeline_funcs import plot_models
+
+
+
 
 
     start1 = time()
-
+     # append system path
     sys.path.append('/Users/neurouser1/Documents/Software/generalUse_models/')
 
     # Make a reports directory to store all images and outputs of SVR
@@ -57,8 +68,6 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 ###############################################################################
 
     # call transformer
-    from utils.pipeline_funcs import transform_data
-
     print('Transforming data')
     X_normed, y_normed, col_names = transform_data(X, y, reports_path)
     print('Your x and y variables have been transformed to be more normal. Check ' + reports_path + ' for the resulting distributions')
@@ -67,9 +76,9 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
 ###############################################################################
 
-    # Outer loop takign the best model and training and testing on all the data using the best model.
-    #define cross-validation method to use
-    
+    # Outer loop taking the best model and training and testing on all the data using the best model.
+    # define cross-validation method to use
+    # define nested cross-validation scheme
     ...
     cv_outer = KFold(n_splits=5)
     fold_n = cv_outer.get_n_splits(X_normed)
@@ -86,7 +95,9 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     for train_ix, test_ix, in cv_outer.split(X_normed):
         fold += 1 
         print('Currently running fold #:',fold)
-        # split data
+        
+        # split data into train and test sets
+        
         X_train, X_test = X_normed[train_ix, :], X_normed[test_ix, :]
         y_train, y_test = y_normed[train_ix], y_normed[test_ix]
 
@@ -98,8 +109,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
 
     ###############################################################################
-        # create synthetic data
-        from utils.pipeline_funcs import synth
+        # create synthetic data using sdv CTGAN model
         verbosity=0 # forcing user to see this for now, to help diagnostics.
         synth_data = synth(x_y_df, eps, batch, verbosity, col_names, synth_sample_size)
 
@@ -124,19 +134,19 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
 
         # fit synthetic data to svr
-        from utils.pipeline_funcs import svr_selectCV
         print('\n')
         print('\n')
         print('Now Performing model selection using Halving Grid Search CV, this could take some time')
         print('\n')
         print('\n')
         print('Halving Grid Search CV your synthetic model and obtaining the best fit')
-        start = time()
+        start = time() # time how long the CTGAN model takes to converge
+        # fit CTGAN model
         synth_svr, best_SVR, hyp_score, r_squared = svr_selectCV(synth_X_train, synth_X_test, synth_y_train, synth_y_test, grid_CVparams)
         end = time()
         print("This process took:", end - start, 'seconds')
 
-        from utils.pipeline_funcs import learning_curves
+        # plot train and test curves
         print('Plotting learning curves for model selection')
         learning_curves(reports_path, synth_svr, grid_CVparams, 1, fold, targets_str)
 
@@ -158,8 +168,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
     filestr =  "SVR_OUTPUT_"+features_str+"-vs-"+targets_str+".txt"
     
-    from datetime import datetime
-    import numpy as np
+
     now = datetime.now()
     now = now.strftime("%Y-%m-%d_%H-%M-%S")
     
@@ -192,7 +201,6 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     c = best_model['C'].values[0]
     gamma = best_model['gamma'].values[0]
     epsilon=best_model['epsilon'].values[0]
-    from sklearn.svm import SVR
     final_SVR = SVR(
         kernel = kernel,
         C= c,
@@ -240,7 +248,6 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     # Permutation test against the median test mse and all data.
 
     median_mse = np.median(test_mse)
-    from utils.pipeline_funcs import perm_svr
     x_y_normed = np.append(X_normed, y_normed, axis=1)
         # create dataframe of x and y array and create column names
     x_y_df_normed = pd.DataFrame(x_y_normed, columns = col_names)
@@ -263,7 +270,6 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     boot_model = final_SVR
 
     # perform bootstrapped sampling to define confidence interval around scoring coefficient.
-    from utils.pipeline_funcs import bootstrap
     boot_stats = bootstrap(X_and_y, boot_model, iterations, boot_metrics, out_path, features_str, targets_str,sample_size)
     conf_interval = np.percentile(boot_stats,[2.5,97.5])
     np.savetxt(reports_path + '/' +features_str +'_'+ targets_str + '_'
@@ -283,7 +289,6 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     
 ###############################################################################
     # Plot fitted models
-    from utils.pipeline_funcs import plot_models
 
     plot_models(X_train, X_test, y_train, y_test, final_SVR, reports_path, targets_str)
 
@@ -291,9 +296,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 ###############################################################################
     # create final files
     filestr =  "SVR_OUTPUT_"+features_str+"-vs-"+targets_str+"_final_model_metrics.txt"
-    
-    from datetime import datetime
-    import numpy as np
+
     now1 = datetime.now()
     now1 = now1.strftime("%Y-%m-%d_%H-%M-%S")
     
