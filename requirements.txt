@@ -1,0 +1,9 @@
+joblib==1.2.0
+matplotlib==3.7.0
+numpy==1.23.5
+pandas==1.5.3
+plotly==5.9.0
+scikit_learn==1.2.2
+sdmetrics==0.7.0
+sdv==0.17.1
+seaborn==0.11.1
