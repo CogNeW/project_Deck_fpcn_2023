@@ -1,4 +1,5 @@
-# project_Deck_fpcn_2023
+# Individual-level Functional Connectivity Predicts Cognitive Control Efficiency
+
 Repository of code used to run SVR model in the paper by Deck 2023: Individual-level Functional Connectivity Predicts Cognitive Control Efficiency
 
 
