@@ -13,7 +13,7 @@ This folder contains the scripts and functions necessary to run an SVR model wit
 
 Within the ```utils``` directory you will find the file entitled ```pipeline_funcs.py```. This Python module contains all of the functions necessary to run the synthetic data SVR. 
 
-You will also find two other files within this directory which are necessary to run this pipeline. The first is the ```synth_svr.py```. This Python script creates the pipeline and calls the functions within ```pipeline_funcs```. If changes need to be made to this file please open an issue/ pull request with issue and/or proposed fixes. Finally, there is a file aptly named ```run_synthSVR.py```. This file serves as a wrapper script which can be pulled/forked and edited by a user. 
+You will also find two other files within this directory which are necessary to run this pipeline. The first is the ```synth_svr.py```. This Python script creates the pipeline and calls the functions within ```pipeline_funcs```. If changes need to be made to this file please open an issue/ pull request with issue and/or proposed fixes. Finally, there is a file aptly named ```wrapper_synth_svr.py```. This file serves as a wrapper script which can be pulled/forked and edited by a user. 
 
 The diagram above indicates the processing steps which are as follows:
 1. Transform and scale original features and target data
