@@ -1,11 +1,11 @@
 #!/usr/bin/env pyhton
 
 # Path where features csv resides
-x_vars='/home/bdeck8317/fpcn_paper/Navon_Task/Navon_task_contrast/Z_connectivity/Individual/FPCNB/baseline/FPCNB_avg_output.csv'
+x_vars='FPCNB_avg_output.csv'
 
 
 # Path where target csv resides
-y_var='/home/bdeck8317/fpcn_paper/Navon_Task/Navon_task_contrast/Z_connectivity/Individual/FPCNB/baseline/shiftcost_ACC_pre.csv'
+y_var='shiftcost_ACC_pre.csv'
 
 # initialize synthetic data gen variables
 # Read about this process at the following links:
@@ -32,7 +32,7 @@ permutations=10000
 
 
 # Specify the output path
-out_path='/home/bdeck8317/fpcn_paper/Navon_Task/Navon_task_contrast/Z_connectivity/Individual/FPCNB/baseline/test/'
+out_path='/test/'
 
 # Import the synth svr script
 from synth_svr import synth_svr
