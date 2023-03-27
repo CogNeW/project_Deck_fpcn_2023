@@ -5,7 +5,6 @@
 
 
 
-from sklearn.metrics import r2_score
 
 
 def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permutations, out_path):
@@ -23,28 +22,23 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     import numpy as np
     from sklearn.svm import SVR
     from sklearn.model_selection import KFold, LeaveOneOut, train_test_split
-    from sklearn.metrics import mean_squared_error
+    from sklearn.metrics import mean_squared_error, r2_score
     from sdv.tabular import CTGAN
     import matplotlib.pyplot as plt
     import seaborn as sns
     from time import time
     import os
     import sys
-    from utils.pipeline_funcs import learning_curves
-    from utils.pipeline_funcs import transform_data
-    from utils.pipeline_funcs import synth
-    from utils.pipeline_funcs import svr_selectCV
+    from utils.pipeline_funcs import learning_curves, transform_data, synth, svr_selectCV, perm_svr, plot_models
     from datetime import datetime
-    from utils.pipeline_funcs import perm_svr
-    from utils.pipeline_funcs import bootstrap
-    from utils.pipeline_funcs import plot_models
+
 
 
 
 
 
     start1 = time()
-     # append system path
+    # append system path
     sys.path.append('/Users/neurouser1/Documents/Software/generalUse_models/')
 
     # Make a reports directory to store all images and outputs of SVR
@@ -58,16 +52,15 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
 
     # load data
-
     X = pd.read_csv(x_vars)
     features_str = os.path.basename(x_vars).split('.')[0]
     print(features_str)
     y = pd.read_csv(y_var)
     targets_str = os.path.basename(y_var).split('.')[0]
-
+    print(targets_str)
 ###############################################################################
 
-    # call transformer
+    # call transformer and transform x and y
     print('Transforming data')
     X_normed, y_normed, col_names = transform_data(X, y, reports_path)
     print('Your x and y variables have been transformed to be more normal. Check ' + reports_path + ' for the resulting distributions')
@@ -78,8 +71,9 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
     # Outer loop taking the best model and training and testing on all the data using the best model.
     # define cross-validation method to use
-    # define nested cross-validation scheme
+    
     ...
+    # define nested cross-validation scheme
     cv_outer = KFold(n_splits=5)
     fold_n = cv_outer.get_n_splits(X_normed)
     # enumerate splits
@@ -114,6 +108,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
         synth_data = synth(x_y_df, eps, batch, verbosity, col_names, synth_sample_size)
 
     ###############################################################################
+        # turn on if want report on synthetic data
         # print('Generating a quality control report for the synthetic data')
         # from utils.pipeline_funcs import synth_report
 
@@ -126,6 +121,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
         # get all data from synthetic data dataframe
         x_synth = synth_data.iloc[:,:-1].to_numpy()
         y_synth = synth_data.iloc[:,-1:].to_numpy()
+        # createtrain test split of synthetic data
         synth_X_train, synth_X_test, synth_y_train, synth_y_test = train_test_split(
             x_synth, y_synth, test_size=0.33)
 
@@ -168,7 +164,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
     filestr =  "SVR_OUTPUT_"+features_str+"-vs-"+targets_str+".txt"
     
-
+    # write report of SVR
     now = datetime.now()
     now = now.strftime("%Y-%m-%d_%H-%M-%S")
     
@@ -178,9 +174,9 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     f.writelines('\n r-squared: %.3f (%.3f)' % (np.median(outer_r2), np.std(outer_r2)))
     f.close()
 
-
+    # create dataframe from model metrics
     metrics_df = pd.DataFrame({'MSE array':outer_mse, 'kernel' : outer_kernel, 'C': outer_c, 'gamma': outer_gamma, 'epsilon': outer_epsilon })
-
+    # save that dataframe to usr defined reports path path
     metrics_df.to_csv(reports_path + '/' + targets_str + "_outer_metrics.csv", index=False)
 
 
@@ -191,7 +187,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
     print('The best test mse and model are:', best_model)
 
-
+    # define test cross-validation on the original real test data.
     cv_test = LeaveOneOut()
     splits = cv_test.get_n_splits(X_normed)
     # enumerate splits
@@ -201,6 +197,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
     c = best_model['C'].values[0]
     gamma = best_model['gamma'].values[0]
     epsilon=best_model['epsilon'].values[0]
+    # fit final model for each fold
     final_SVR = SVR(
         kernel = kernel,
         C= c,
@@ -260,32 +257,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
 
 
-###############################################################################
 
-    # initialize bootstrap variables
-    X_and_y = np.column_stack((X_normed, y_normed))
-    iterations=10000
-    sample_size = int(len(X_normed) -1)
-    boot_metrics = 'neg_mean_squared_error'
-    boot_model = final_SVR
-
-    # perform bootstrapped sampling to define confidence interval around scoring coefficient.
-    boot_stats = bootstrap(X_and_y, boot_model, iterations, boot_metrics, out_path, features_str, targets_str,sample_size)
-    conf_interval = np.percentile(boot_stats,[2.5,97.5])
-    np.savetxt(reports_path + '/' +features_str +'_'+ targets_str + '_'
-        + boot_metrics + "_bootstats.csv",
-    boot_stats, delimiter =", ", fmt ='% s')
-
-    # Plot bootstrapped distribution
-    sns.displot(x = abs(np.array(boot_stats)), color = 'salmon', kind='kde', rug=False)
-    plt.title("Bootstrapped  Mean Squared Error")
-    plt.xlabel('Mean Squared Error')
-    plt.ylabel('Frequency')
-
-    fig = plt.gcf()
-    plt.draw()
-    plt.tight_layout()
-    fig.savefig(reports_path + '/' + features_str +'_' + targets_str +  '_' + '_bootstrapped.png')
     
 ###############################################################################
     # Plot fitted models
@@ -294,7 +266,7 @@ def synth_svr(x_vars,y_var, synth_sample_size, eps, batch, grid_CVparams, permut
 
 
 ###############################################################################
-    # create final files
+    # create final files with metrics
     filestr =  "SVR_OUTPUT_"+features_str+"-vs-"+targets_str+"_final_model_metrics.txt"
 
     now1 = datetime.now()
