@@ -25,3 +25,7 @@ The diagram above indicates the processing steps which are as follows:
 7. A leave one out CV [scheme](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.LeaveOneOut.html) is used where upon each fold the SVR model is trained on newly created synthetic data from all but the single test subject.
 8. The overall test MSE is from the single test subject in step 7 and the median test MSE is computed
 9. Finally, a permutation test is computed where the original MSE is the median MSE from step 8. The null distribution is created using all of the original data and permuting the target variable N number of times (permutation number is set by user)
+
+
+
+Please check the ```requirements.txt``` file for most up to date package requirements.
