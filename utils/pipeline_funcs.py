@@ -3,8 +3,6 @@
 
 # Data transform
 
-from sklearn.svm import SVR
-
 
 def transform_data(x, y, reports_path):
     """
@@ -35,7 +33,7 @@ def transform_data(x, y, reports_path):
 
     print('Transforming your data and making distribution plots')
 
-
+    # Making distribution plots for each column
     for feat, x_col in zip(range(x_normed.shape[1]), x_cols):
         sns.scatterplot(data= x_normed, x= x_normed[:,feat], y= y_normed.ravel())
         plt.xlabel(x_col)
@@ -67,12 +65,12 @@ def synth(x_y_df, eps, batch, verbosity, col_names, synth_sample_size):
     Generates synthetic data based on user specifications and reports some preliminary statistics about the quality of that synthetic data.
 
 
-    x_y_df (df) a concatenation of the X and y dataframes
-    eps (integer) of the number of epochs to fit the synthetic data GANs model
-    batch (int) the number of rows to use when fitting the data in the GANs model
-    verbosity (1 or 0) determines whether or not to print the loss values from fitting the GANS model
-    col_names (list) list of column names from the dataframe
-    synth_sample_size (int) number of synthetic data points to generate.
+    x_y_df --- (pandas df) a concatenation of the X and y dataframes
+    eps --- (int) of the number of epochs to fit the synthetic data GANs model
+    batch --- (int) the number of rows to use when fitting the data in the GANs model
+    verbosity --- (1 or 0) determines whether or not to print the loss values from fitting the GANS model
+    col_names --- (list) list of column names from the dataframe
+    synth_sample_size --- (int) number of synthetic data points to generate.
     
     """
 
@@ -119,9 +117,9 @@ def synth_report(x_y_df, synth_data, reports_path):
     """
     Generate a report on the quality of the synthetic data used in each fold ---not currently used in synth_svr.py ---Still in BETA testing.
 
-    x_y_df (dataframe) dataframe to be used to compare to synthetic data fit
-    synth_data (dataframe) of synthetic data from the GANs model
-    reports_path (str) path to output folder
+    x_y_df --- (pd df) dataframe to be used to compare to synthetic data fit
+    synth_data --- (pd df) of synthetic data from the GANs model
+    reports_path --- (str) path to output folder
     """
 
     from sdmetrics.reports.single_table import QualityReport
@@ -157,13 +155,13 @@ def svr_selectCV(X_train, X_test, y_train, y_test, params):
     """
     Model selection SVR with CV using halving grid search CV. 
 
-    X_train (numpy array) Array of synthetic data to train the SVR estimator for features
-    X_test (numpy array) Array of real test data from the original dataset
-    y_train (numpy array) Array of synthetic training data of targets
-    y_test (numpy array) Array of real teset data for targets
-    params (dictionary) Dictionary of parameters for estimator including those to be used in CV model selection.
+    X_train --- (numpy array) Array of synthetic data to train the SVR estimator for features
+    X_test --- (numpy array) Array of real test data from the original dataset
+    y_train --- (numpy array) Array of synthetic training data of targets
+    y_test --- (numpy array) Array of real teset data for targets
+    params --- (dictionary) Dictionary of parameters for estimator including those to be used in CV model selection.
     """
-
+    # load dependencies
     from sklearn.svm import SVR
     from sklearn.pipeline import Pipeline
     from sklearn.model_selection import GridSearchCV 
@@ -175,26 +173,26 @@ def svr_selectCV(X_train, X_test, y_train, y_test, params):
     import matplotlib.pyplot as plt
     import numpy as np
 
-    # create cached tmp directory which can be used to store the fits and overall train much faster
+    # create cached tmp directory which can be used to store the fit data
     location = 'cachedir'
     memory = Memory(location=location, verbose=0)
     
-    
+    # initialize ml pipeline
     pipe = Pipeline(steps=[('svr', SVR()),], memory=memory)
     # Select the optimal number of parcels with grid search
     grid_svr = HalvingGridSearchCV(pipe, params, scoring='r2', verbose=1, n_jobs=-1, cv=5)
 
-
+    # fit halving grid svr
     grid_svr.fit(X_train, y_train.ravel())  # fit the best regressor
 
 
     print("Best cross validated score: %f using %s" % (grid_svr.best_score_, grid_svr.best_params_))
-    
+    # intialize best svr
     best_SVR = SVR(kernel = grid_svr.best_params_['svr__kernel'],
                    epsilon = grid_svr.best_params_['svr__epsilon'],
                    C = grid_svr.best_params_['svr__C'],
                    gamma= grid_svr.best_params_['svr__gamma'])
-
+    # fit best svr
     best_SVR.fit(X_train, y_train.ravel())
 
     predictions = best_SVR.predict(X_test)
@@ -202,6 +200,7 @@ def svr_selectCV(X_train, X_test, y_train, y_test, params):
     print('r2:', r2_score(y_test, predictions))
     
     print('mean_squared_error:', mean_squared_error(y_test, predictions))
+    
     
     hyp_score=mean_squared_error(y_test, predictions)
     r_squared= r2_score(y_test, predictions)
@@ -214,14 +213,14 @@ def learning_curves(reports_path, model, params, model_selection, fold_n, target
     """
     Creates a series of learning curves from the best overall model selection CV or best models in outer CV (toggle model selection on or off).
 
-    reports_path (str) Path to output folder
-    model (object) Estimator used in Hyperparameter tuning
-    params (dictionary) Dictionary of parameters for estimator including those to be used in CV model selection.
-    model_selection (1 or 0) Binary determines whether this is model selection or final model process
-    fold_n (int) Integer which dictates the number of folds to compute
-    targets_str (str) String indicating the targets file name
+    reports_path --- (str) Path to output folder
+    model --- (sklearn object) Estimator used in Hyperparameter tuning
+    params --- (dict) Dictionary of parameters for estimator including those to be used in CV model selection.
+    model_selection --- (int) Binary determines whether this is model selection or final model process. Should be either 0 or 1
+    fold_n --- (int) Integer which dictates the number of folds to compute
+    targets_str --- (str) String indicating the targets file name
     """
-
+    # load dependencies
     import pandas as pd
     import matplotlib.pyplot as plt
     import numpy as np
@@ -232,7 +231,7 @@ def learning_curves(reports_path, model, params, model_selection, fold_n, target
         'std_test_score', 
         'std_train_score']
 
-
+    # define poolev variance
     def pooled_var(stds):
         # https://en.wikipedia.org/wiki/Pooled_variance#Pooled_standard_deviation
         n = 5 # size of each group
@@ -283,12 +282,12 @@ def perm_svr(svr, synth_x, real_x, synth_y, real_y, permutations, median_mse, re
     Performs a permutation test using the original hypothesized MSE and compares that to a random null distribution.
 
 
-    svr (object) Estimator from the overall best model
-    x (numpy array) Array of original real features data
-    y (numpy array) Array of original real target data
-    permutations (int) Integer dictating the number of permutations to use (or shuffles of the target vector)
-    median_mse (float) Float indicating the median test mse after LOOCV
-    reports_path (str) String indicating the output path
+    svr --- (sklearn object) Estimator from the overall best model
+    x --- (numpy array) Array of original real features data
+    y --- (numpy array) Array of original real target data
+    permutations --- (int) Integer dictating the number of permutations to use (or shuffles of the target vector)
+    median_mse --- (float) Float indicating the median test mse after LOOCV
+    reports_path  --- (str) String indicating the output path
 
     
     """
@@ -311,7 +310,7 @@ def perm_svr(svr, synth_x, real_x, synth_y, real_y, permutations, median_mse, re
 
     perm_scores_pos = np.abs(perm_scores)
 
-
+    # plot observed mse and null permuted mse
     plt.clf()
     sns.histplot(perm_scores_pos, bins=1000, color = 'slategrey')
     plt.axvline(median_mse, color='green', linestyle='dashed', linewidth=2)
@@ -320,6 +319,7 @@ def perm_svr(svr, synth_x, real_x, synth_y, real_y, permutations, median_mse, re
     plt.ylabel('Frequency', fontsize = 15)
     plt.savefig(reports_path +'/' + targets_str + '_permutation_test.svg')
 
+    # compute permutation test which is the proportion of models which performed better than the observed MSE
     obs_better_than_hyp = 0
     for ii in perm_scores_pos:
         if ii <= median_mse:
@@ -333,61 +333,15 @@ def perm_svr(svr, synth_x, real_x, synth_y, real_y, permutations, median_mse, re
 
 
 
-# bootstrap
-def bootstrap(X_y, model, iterations, metric, reports_path, features_str, targets_str, sample_size):
-    """
-    Generates a bootstrapped confidence interval for mean-squared error
-
-
-    environmental vars:
-    X_y: features and targets in one numpy array-----try using np.column_stack() to add the target vector to the features
-    model: model type to perform bootstrap fitting over, if using from cross validation method use best_model
-    iterations: the number of bootstraps to compute
-    sample_size: for each bootstrap, how big do you want the sample to be
-    boot_metric: pick appropriate metric from the following https://scikit-learn.org/stable/modules/model_evaluation.html
-"""
-    from sklearn.utils import resample
-    
-    import seaborn as sns
-    import numpy as np
-    from sklearn.utils import resample
-    import matplotlib.pyplot as plt
-    import importlib
-
-    print('Running bootstrap and obtaining a confidence interval for:', metric)
-    
-
-    full_module_name = 'sklearn.metrics'
-
-# The file gets executed upon import, as expected.
-    my_module = importlib.import_module(full_module_name)
-
-# run bootstrap
-
-    stats = []
-    print('Currently fitting bootstrapped models')
-    for mod_num in range(iterations):
-    	# prepare train and test sets
-        train = resample(X_y, n_samples=sample_size)
-        test = np.array([x for x in X_y if x.tolist() not in train.tolist()])
-    	# fit model
-        model = model
-        model.fit(train[:,:-1], train[:,-1])
-    	# evaluate model
-        predictions = model.predict(test[:,:-1])
-        score = my_module.mean_squared_error(test[:,-1], predictions)
-
-        stats.append(score)
-
-    return stats
-
-
 
 def plot_models(X_train, X_test, y_train, y_test, svr, reports_path, targets_str):
     """
-    X_train (dataframe) A dataframe with the training data
-    X_test ()
+    This function plots the training and test MSE on the same lineplots
+    
+    X_train --- (pandas dataframe) A dataframe with the training data
+    X_test --- (pandas dataframe)
     """
+    # import dependencies
     import matplotlib.pyplot as plt
     import seaborn as sns
 
@@ -413,26 +367,27 @@ def summary_file(reports_path, features_str, targets_str, final_model, permutati
     Generates a summary text file ---not currently used in synth_svr.py
 
 
-    reports_path (str) String indicating location of output folder
-    features_str (str) String indicating the features basename
-    targets_str (str) String indicating the targets basename
-    final_model (object) Estimator of the best overall model across all CV schemes and model selection
-    permutations (int) Integer dictating the number of permutations run for the permutation test.
-    obs (int) Integer dictating the number of models which fit the data better than the hypothesized model
-    p_val (float) Float indicating the p-value from the permutation test
-    conf_int (list) list indicating the 95% confidence interval
-    summary_metrics (list) List of possible metrics to create files for.
+    reports_path --- (str) String indicating location of output folder
+    features_str --- (str) String indicating the features basename
+    targets_str --- (str) String indicating the targets basename
+    final_model --- (sklearn object) Estimator of the best overall model across all CV schemes and model selection
+    permutations --- (int) Integer dictating the number of permutations run for the permutation test.
+    obs --- (int) Integer dictating the number of models which fit the data better than the hypothesized model
+    p_val --- (float) Float indicating the p-value from the permutation test
+    conf_int --- (list) list indicating the 95% confidence interval
+    summary_metrics --- (list) List of possible metrics to create files for.
     """
-
+    
+    # load dependencies
     from datetime import datetime
     import numpy as np
     now = datetime.now()
     now = now.strftime("%Y-%m-%d_%H-%M-%S")
-    
+    # set output file path
     filestr =  "SVR_OUTPUT_"+features_str+"-vs-"+targets_str+".txt"
     grid_bestscore = final_model.best_score_
     grid_best_params= final_model.best_params_
-
+    # write report file
     f= open(reports_path + '/' + filestr,"w+")
     f.writelines(now)
     f.writelines('\nBest model MSE:' + str(grid_bestscore))
