@@ -10,9 +10,9 @@ def transform_data(x, y, reports_path):
     """
     Transforms data using PowerTransformer for the features ('yeo-johnson') and QuantileTransformer for targets to create more normal distributions for all features and targets. Also plots all distributions after transformation.
 
-    x a path to the input feature set or csv
-    y a path to the input target set or csv
-    reports_path a path or string where the output report folder should be created
+    x ---(str) a path to the input feature set or csv
+    y --- (str) a path to the input target set or csv
+    reports_path --- (str) where the output report folder should be created
     
     """
     import matplotlib.pyplot as plt
