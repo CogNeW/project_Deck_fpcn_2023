@@ -22,8 +22,8 @@ The diagram above indicates the processing steps which are as follows:
 3. Use the original ShuffleSplit training sample to train a Conditional Tabular Generative Adversarial Network ([CTGANS](https://sdv.dev/SDV/user_guides/single_table/ctgan.html)) model.
 4. Generate N-samples (set by user)
 5. Perform model selection using a [Halving GridSearch CV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.HalvingGridSearchCV.html) method with 5 folds. This is a much faster implementation of the traditional GridSearchCV
-6. The best hyperparameter model this then selected based on the lowest mean-squared error
-7. A leave one out CV [scheme](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.LeaveOneOut.html) is used where upon each fold the SVR model is trained on newly created synthetic data from all but the single test subject.
+6. The best hyperparameter model this then selected based on the greatest R-squared
+7. A leave one out CV [scheme](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.LeaveOneOut.html) is used where upon each fold the SVR model is trained on newly created synthetic data from all but the single test subject (the original hold-out test set).
 8. The overall test MSE is from the single test subject in step 7 and the median test MSE is computed
 9. Finally, a permutation test is computed where the original MSE is the median MSE from step 8. The null distribution is created using all of the original data and permuting the target variable N number of times (permutation number is set by user)
 
