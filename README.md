@@ -19,7 +19,7 @@ You will also find two other files within this directory which are necessary to 
 The diagram above indicates the processing steps which are as follows:
 1. Transform and scale original features and target data
 2. Split the original data into train and test sets using a [K-Fold CV method](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold) with 5 folds.
-3. Use the original ShuffleSplit training sample to train a Conditional Tabular Generative Adversarial Network ([CTGANS](https://sdv.dev/SDV/user_guides/single_table/ctgan.html) model).
+3. Use the original ShuffleSplit training sample to train a Conditional Tabular Generative Adversarial Network ([CTGANS](https://sdv.dev/SDV/user_guides/single_table/ctgan.html)) model.
 4. Generate N-samples (set by user)
 5. Perform model selection using a [Halving GridSearch CV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.HalvingGridSearchCV.html) method with 5 folds. This is a much faster implementation of the traditional GridSearchCV
 6. The best hyperparameter model this then selected based on the lowest mean-squared error
