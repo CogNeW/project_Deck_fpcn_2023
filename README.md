@@ -1,32 +1,25 @@
-# Individual-level Functional Connectivity Predicts Cognitive Control Efficiency
+## Individual-level Functional Connectivity Predicts Cognitive Control Efficiency
 
 Repository of code used to run our SVR model in the paper by Deck 2023: Individual-level Functional Connectivity Predicts Cognitive Control Efficiency
 
+### Step-by-step guide to reproduce results
 
-## Synthetic Data Generation Support Vector Regression
+In order to reproduce our results we provide guidelines on how to interact with our code and corresponding [data set](https://osf.io/d7p58/)
 
-<img src="ml_svr_synth.png" class="inline"/>
+#### Main SVR analysis
+1. Users should download the data at our OSF [database](https://osf.io/d7p58/)
 
+2. Amend the paths to ```wrapper_synth_svr.py``` to where the OSF data was downloaded including functional connectivity data and behavior data.
+    a. Connectivity data will have a naming structure such as ```FPCNA_avg_output.csv```, while behavioral data will have the following naming structure, ```shiftcost_ACC.csv```, depending on the behavior of interest. 
+    b. The connectivity data's name is based on whether or not fronto-parietal control network-A or B is incluced in the analysis and whether the lateral default-mode network is included or not.
+    c. Depending on your compute capabilities the SVR pipeline can take 1-3 hours. The original paper used 8 CPU-cores and 16 gb of ram on a SLURM-Cluster through Google Cloud Platform. 
 
-### Project description
+3. The results can be found in the reports folder which the user can specify the path to.
 
-This folder contains the scripts and functions necessary to run an SVR model with synthetic data. 
+4. The replication and control data analysis follows this same process.
 
-Within the ```utils``` directory you will find the file entitled ```pipeline_funcs.py```. This Python module contains all of the functions necessary to run the synthetic data SVR. 
+#### Time series reliabiltiy
 
-You will also find two other files within this directory which are necessary to run this pipeline. The first is the ```synth_svr.py```. This Python script creates the pipeline and calls the functions within ```pipeline_funcs```. Finally, there is a file aptly named ```wrapper_synth_svr.py```. This file serves as  wrapper script which will call the SVR function and run the SVR model on input data. 
+1. Time series reliabiltiy data should be downloaded and unzipped from the OSF database.
+2. Users should then amend the ```group_ts_reliability.py``` wrapper script for the output and other paths in this script to be pointed to the downloaded data.
 
-The diagram above indicates the processing steps which are as follows:
-1. Transform and scale original features and target data
-2. Split the original data into train and test sets using a [K-Fold CV method](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.KFold.html#sklearn.model_selection.KFold) with 5 folds.
-3. Use the original ShuffleSplit training sample to train a Conditional Tabular Generative Adversarial Network ([CTGANS](https://sdv.dev/SDV/user_guides/single_table/ctgan.html)) model.
-4. Generate N-samples (set by user)
-5. Perform model selection using a [Halving GridSearch CV](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.HalvingGridSearchCV.html) method with 5 folds. This is a much faster implementation of the traditional GridSearchCV
-6. The best hyperparameter model this then selected based on the greatest R-squared
-7. A leave one out CV [scheme](https://scikit-learn.org/stable/modules/generated/sklearn.model_selection.LeaveOneOut.html) is used where upon each fold the SVR model is trained on newly created synthetic data from all but the single test subject (the original hold-out test set).
-8. The overall test MSE is from the single test subject in step 7 and the median test MSE is computed
-9. Finally, a permutation test is computed where the original MSE is the median MSE from step 8. The null distribution is created using all of the original data and permuting the target variable N number of times (permutation number is set by user)
-
-
-
-Please check the ```requirements.txt``` file for most up to date package requirements.

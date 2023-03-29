@@ -13,9 +13,9 @@ subjects=['sub-DP5001',      'sub-DP5007',      'sub-DP5013',      'sub-DP5020',
 'sub-DP5005',      'sub-DP5011',      'sub-DP5018',      'sub-DP5024',      'sub-DP5030',      'sub-DP5036',      'sub-DP5047',
 'sub-DP5006',      'sub-DP5012',      'sub-DP5019',      'sub-DP5025',      'sub-DP5031',      'sub-DP5037',      'sub-DP5050']
 
-out = '/Volumes/823777_TNI_DP5_Healthy/DP5/Ben_SVR_fpcn_paper/mean_ts/'
+out = '/path/to/out/directory/'
 
-task = 'ses-StroopRealStim'
+task = 'ses-<put_task_name_here>'
 
 
 low_list = []
@@ -26,8 +26,8 @@ contrast_list = []
 for sub in subjects:
     print('Now obtaining reliability measures for ' + sub)
 
-    tshigh = '/Volumes/823777_TNI_DP5_Healthy/DP5/Ben_SVR_fpcn_paper/mean_ts/' + sub + '/'+task + '/' + sub +  '_' + task + '_high_li2019_ts.txt'  
-    tslow = '/Volumes/823777_TNI_DP5_Healthy/DP5/Ben_SVR_fpcn_paper/mean_ts/'+ sub + '/'+task + '/'  + sub + '_' + task + '_low_li2019_ts.txt'
+    tshigh = '/path/to_ts/data/directory/' + sub + '/'+task + '/' + sub +  '_' + task + '_high_li2019_ts.txt'  
+    tslow = '/path/to_ts/data/directory/'+ sub + '/'+task + '/'  + sub + '_' + task + '_low_li2019_ts.txt'
 
     high_path = os.path.exists(tshigh)
     low_path = os.path.exists(tslow)
