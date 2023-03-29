@@ -10,9 +10,9 @@ In order to reproduce our results we provide guidelines on how to interact with 
 1. Users should download the data at our OSF [database](https://osf.io/d7p58/)
 
 2. Amend the paths to ```wrapper_synth_svr.py``` to where the OSF data was downloaded including functional connectivity data and behavior data.
-    2.1 Connectivity data will have a naming structure such as ```FPCNA_avg_output.csv```, while behavioral data will have the following naming structure, ```shiftcost_ACC.csv```, depending on the behavior of interest. 
-    2.3 The connectivity data's name is based on whether or not fronto-parietal control network-A or B is incluced in the analysis and whether the lateral default-mode network is included or not.
-    2.4 Depending on your compute capabilities the SVR pipeline can take 1-3 hours. The original paper used 8 CPU-cores and 16 gb of ram on a SLURM-Cluster through Google Cloud Platform. 
+    2.1  Connectivity data will have a naming structure such as ```FPCNA_avg_output.csv```, while behavioral data will have the following naming structure, ```shiftcost_ACC.csv```, depending on the behavior of interest. 
+    2.3  The connectivity data's name is based on whether or not fronto-parietal control network-A or B is incluced in the analysis and whether the lateral default-mode network is included or not.
+    2.4  Depending on your compute capabilities the SVR pipeline can take 1-3 hours. The original paper used 8 CPU-cores and 16 gb of ram on a SLURM-Cluster through Google Cloud Platform. 
 
 3. The results can be found in the reports folder which the user can specify the path to.
 
