@@ -21,10 +21,10 @@ batch=1000 # set the number of values to train each epoch on
 
 import numpy as np
 # Specify halving grid search params via a dictionary
-grid_CVparams={'svr__kernel':['linear','rbf'] ,
-          'svr__C': [1e0, 1e1, 1e2, 1e3],
-              'svr__epsilon':[.001,.01,.1,1],
-              'svr__gamma':np.logspace(-9, 3, 13)}
+grid_CVparams={'svr__kernel':[] ,
+          'svr__C': [],
+              'svr__epsilon':[],
+              'svr__gamma':[]}
 
 
 # specify the number of permutations to conduct for the permutation test.
